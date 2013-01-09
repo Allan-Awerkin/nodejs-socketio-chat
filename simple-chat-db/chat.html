@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- CSS -->
+	<link href="../assets/css/jquery.ui/themes/smoothness/jquery-ui.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap.cosmo/bootstrap.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<style>
+	blockquote
+	{
+		margin:0px 0px 3px 0px;
+		font-weight:normal;
+	}
+	body {
+        padding-top: 60px;
+    }
+	</style>
+	
+	<!-- jQuery -->
+	<script src="../assets/js/jquery/jquery.min.js"></script>
+	<script src="../assets/js/jquery.ui/jquery-ui.custom.min.js"></script>
+	
+	<!-- Socket.io -->
+	<script src="http://localhost:4444/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+		//connect to http server
+        var socket = io.connect('http://localhost:4444');
+		//on new message
+        socket.on('msg', function(data) {
+            var msg = JSON.parse(data);
+            update_feed(msg);
+        });
+		//on init
+        socket.on('init', function(data) {
+			//clear chat messages box
+			$('#chat_messages').html('');
+			//parse json messages
+            var messages = JSON.parse(data)
+            for (i in messages)
+			{
+				//add message to feed
+                update_feed(messages[i])
+			}
+        });
+        function update_feed(msg) {
+            $('#chat_messages').prepend(function() {
+				item="<blockquote>"
+				item+='<strong>@'+msg.username+'</strong>&nbsp;&nbsp;'+msg.message; 
+				item+="</blockquote>";
+                return item;
+            });
+			$("div#chat_messages blockquote:first-child").effect("pulsate", {times:1} , 2000);
+        }
+        function send_message() {
+			//prepare new message
+            var username = $("#username").val();
+			var message = $("#message").val();
+			//check if user entered username
+			if(username!="" && message!="")
+			{
+				//reset message form
+				$("#message").val("");
+				//prepare message package for http server
+				var message_package={};
+				message_package["username"]=username;
+				message_package["message"]=message;
+				//add new message to feed
+				update_feed(message_package);
+				//send new message to http server
+				socket.emit('msg', JSON.stringify(message_package));
+			}
+			else
+			{
+				$("#username").effect("pulsate", {times:1} , 2000);
+			}
+        }
+		//on enter keypress event, send message
+		$(document).ready(function() {
+			$("#message").keypress(function(e)
+			{
+				if (e.keyCode == 13)
+				{
+					e.preventDefault();
+					send_message();
+				}
+			});
+		});
+    </script>
+	
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+	
+	   <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Chat</a>
+        </div>
+      </div>
+    </div>
+	
+	
+		<div class="container">
+		<form id="chat_form">
+					<div class="input-prepend">
+					<span class="add-on">@</span>
+					<input class="input-xlarge" id="username" name="username" type="text" placeholder="Username" />
+					</div>
+					<div class="input-prepend">
+					<span class="add-on">//</span>
+					<input class="input-xlarge" id="message" name="message" type="text" placeholder="Enter your message..."/>
+					</div>
+		</form>
+		<div id="chat_messages"></div>
+
+		 </div>
+		</div>
+
+    <script src="../assets/js/bootstrap/bootstrap.min.js"></script>
+  </body>
+</html>
