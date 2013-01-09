@@ -1,4 +1,4 @@
 nodejs-simple-chat-app
 ======================
 
-Simple Chat App made with Node.js (plus Socket.io and Bootstrap)
+Simple Chat App made with Node.js with Socket.io, Bootstrap for UI and MySql for storing messages.
