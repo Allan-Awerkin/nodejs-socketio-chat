@@ -7,8 +7,8 @@ var db = require('mysql')
 var server_port = 4444;
 var db_host='localhost';
 var db_name='chat';
-var db_user='root';
-var db_user_password='razvoj';
+var db_user='USER NAME HERE';
+var db_user_password='PASSWORD HERE';
 
 //HTTP SERVER
 //create http server
