@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- CSS -->
+	<link href="../assets/css/jquery.ui/themes/smoothness/jquery-ui.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap.cosmo/bootstrap.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	<style>
+	blockquote
+	{
+		margin:0px 0px 3px 0px;
+		font-weight:normal;
+	}
+	.alert
+	{
+		margin:0px 0px 3px 0px;
+		font-weight:normal;
+	}
+	body {
+        padding-top: 60px;
+    }
+	</style>
+	
+	<!-- jQuery -->
+	<script src="../assets/js/jquery/jquery.min.js"></script>
+	<script src="../assets/js/jquery.ui/jquery-ui.custom.min.js"></script>
+	
+	<!-- Socket.io -->
+	<script src="http://localhost:4444/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+		//connect to http server
+        var socket = io.connect('http://localhost:4444');
+		//get new messages
+        socket.on('get_messages', function(username, msg) {
+            update_feed(username, msg);
+        });
+		//update chat messages box
+        function update_feed(username, msg) {
+			//different message type - different css output
+			if(username=="sys-disconnected")
+			{
+				$('#chat_messages').prepend(function() {
+					item="<div class='alert alert-error'>"
+					item+=msg; 
+					item+="</div>";
+					return item;
+				});
+			}
+			else if (username=="sys-leftroom")
+			{
+				$('#chat_messages').prepend(function() {
+					item="<div class='alert alert-block'>"
+					item+=msg; 
+					item+="</div>";
+					return item;
+				});
+			}
+			else if (username=="sys-joinedroom")
+			{
+				$('#chat_messages').prepend(function() {
+					item="<div class='alert alert-success'>"
+					item+=msg; 
+					item+="</div>";
+					return item;
+				});
+			}
+			else if (username=="sys-newroom")
+			{
+				$('#chat_messages').prepend(function() {
+					item="<div class='alert alert-info'>"
+					item+=msg; 
+					item+="</div>";
+					return item;
+				});
+			}
+			else
+			{
+				$('#chat_messages').prepend(function() {
+					item="<blockquote>"
+					item+='<strong>@'+username+'</strong>&nbsp;&nbsp;'+msg; 
+					item+="</blockquote>";
+					return item;
+				});
+			}
+			$("div#chat_messages blockquote:first-child").effect("pulsate", {times:1} , 2000);
+        }
+        function send_message() {
+			//prepare new message
+			var message = $("#message").val();
+			//reset message form
+			$("#message").val("");
+			//send new message to http server
+			socket.emit('new_message', message);
+        }
+		//update rooms
+		socket.on('get_rooms', function(rooms) {
+			$('#rooms').empty();
+			//add rooms to select control
+			$.each(rooms, function(key, value) {
+				$('#rooms').append('<option value="' + value + '">'+value+"</option>");
+			});
+		});
+		//check if username is set
+		function check_username()
+		{
+			var username = $("#username").val();
+			var room = $("#rooms").val();
+			if(room==null)
+			{	
+				room="default";
+			}
+			if(username=="")
+			{
+				//disable sending new messages
+				$("#message").prop('disabled', true);
+				$("#rooms").prop('disabled', true);
+				$("#username").effect("pulsate", {times:1} , 2000);
+			}
+			else
+			{
+				//enable user to send new messages
+				$("#message").prop('disabled', false);
+				$("#rooms").prop('disabled', false);
+				//add user to server
+				socket.emit('add_user', username, room);
+			}
+		}
+		//add new room
+		function add_room(){
+			var room = $('#roomname').val();
+			if(room!="")
+			{
+				//send new room name
+				socket.emit('new_room', room);
+				$('#roomname').val('');
+				$('#rooms').effect('pulsate', {times:1} , 2000);
+			}
+			else
+			{
+				$('#roomname').effect('pulsate', {times:1} , 2000);
+			}
+		}
+		$(document).ready(function() {
+			//on enter keypress event, send message
+			$("#message").keypress(function(e)
+			{
+				if (e.keyCode == 13)
+				{
+					e.preventDefault();
+					send_message();
+				}
+			});
+			//on enter keypress event, add new room
+			$("#roomname").keypress(function(e)
+			{
+				if (e.keyCode == 13)
+				{
+					e.preventDefault();
+					add_room();
+				}
+			});
+			//on room change
+			$("#rooms").change(function(e)
+			{
+				var room = $(this).val();
+				socket.emit('switch_room', room);
+			});
+			//check if username is set
+			check_username();
+			//on username value change
+			$("#username").change(function(e)
+			{
+				check_username();
+			});
+		});
+		
+    </script>
+	
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+	
+	   <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Chat</a>
+        </div>
+      </div>
+    </div>
+	
+		<div class="container">
+		<form id="chat_form">
+					<div class="input-prepend">
+					<span class="add-on"><i class="icon-bullhorn"></i></span>
+					<select id="rooms" class="span2">
+					</select>
+					</div>
+					<div class="input-prepend">
+					<span class="add-on"><i class="icon-plus"></i></span>
+					<input class="input-xlarge" id="roomname" name="roomname" type="text" placeholder="Insert new room name and press enter..." />
+					</div>
+					<div class="input-prepend">
+					<span class="add-on"><i class="icon-user"></i></span>
+					<input class="input-xlarge" id="username" name="username" type="text" placeholder="Username..." />
+					</div>
+					<div class="input-prepend">
+					<span class="add-on"><i class="icon-envelope"></i></span>
+					<input class="input-xlarge" id="message" name="message" type="text" placeholder="Message..."/>
+					</div>
+		</form>
+		<div id="chat_messages"></div>
+
+		 </div>
+		</div>
+
+    <script src="../assets/js/bootstrap/bootstrap.min.js"></script>
+  </body>
+</html>

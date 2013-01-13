@@ -7,8 +7,8 @@ var db = require('mysql')
 var server_port = 4444;
 var db_host='localhost';
 var db_name='chat';
-var db_user='USER NAME HERE';
-var db_user_password='PASSWORD HERE';
+var db_user='';
+var db_user_password='';
 
 //HTTP SERVER
 //create http server
@@ -39,7 +39,7 @@ io.sockets.on('connection', function(client) {
 		//send all messages to newly connected client
 		client.emit("init", JSON.stringify(rows))
 	});
-    client.on('msg', function(msg) {
+    client.on('new_message', function(msg) {
 		//parse json message
         var newmessage = JSON.parse(msg)
 		//save message to db
@@ -49,6 +49,6 @@ io.sockets.on('connection', function(client) {
 			if (err) throw err;
 		});
 		//send new message to all connected clients
-        client.broadcast.emit('msg', msg)
+        client.broadcast.emit('new_message', msg)
     })
 })

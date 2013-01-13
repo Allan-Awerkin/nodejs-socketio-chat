@@ -28,13 +28,13 @@ io.set('log level', 1); //remove junk log messages
 //define events
 io.sockets.on('connection', function(client) {
 	//send all messages to newly connected client
-    client.emit("init", JSON.stringify(messages))
-    client.on('msg', function(msg) {
+    client.emit('init', JSON.stringify(messages))
+    client.on('new_message', function(msg) {
 		//parse json message
         var newmessage = JSON.parse(msg)
 		//save it to message store
         messages.save(newmessage)
 		//send new message to all connected clients
-        client.broadcast.emit('msg', msg)
+        client.broadcast.emit('new_message', msg)
     })
 })

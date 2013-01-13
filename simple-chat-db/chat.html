@@ -32,7 +32,7 @@
 		//connect to http server
         var socket = io.connect('http://localhost:4444');
 		//on new message
-        socket.on('msg', function(data) {
+        socket.on('new_message', function(data) {
             var msg = JSON.parse(data);
             update_feed(msg);
         });
@@ -73,7 +73,7 @@
 				//add new message to feed
 				update_feed(message_package);
 				//send new message to http server
-				socket.emit('msg', JSON.stringify(message_package));
+				socket.emit('new_message', JSON.stringify(message_package));
 			}
 			else
 			{
@@ -103,8 +103,6 @@
   <body>
 
     <div id="wrap">
-
-	
 	   <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
@@ -112,21 +110,18 @@
         </div>
       </div>
     </div>
-	
-	
 		<div class="container">
 		<form id="chat_form">
 					<div class="input-prepend">
-					<span class="add-on">@</span>
-					<input class="input-xlarge" id="username" name="username" type="text" placeholder="Username" />
+					<span class="add-on"><i class="icon-user"></i></span>
+					<input class="input-xlarge" id="username" name="username" type="text" placeholder="Username..." />
 					</div>
 					<div class="input-prepend">
-					<span class="add-on">//</span>
-					<input class="input-xlarge" id="message" name="message" type="text" placeholder="Enter your message..."/>
+					<span class="add-on"><i class="icon-envelope"></i></span>
+					<input class="input-xlarge" id="message" name="message" type="text" placeholder="Message..."/>
 					</div>
 		</form>
 		<div id="chat_messages"></div>
-
 		 </div>
 		</div>
 
